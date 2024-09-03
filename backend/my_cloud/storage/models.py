@@ -22,7 +22,7 @@ class Files(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     title = models.CharField(max_length=200)
     path_to_file = models.CharField(max_length=500)
-    user = models.ForeignKey(Users, on_delete=models.CASCADE, related_name='files')
+    user = models.ForeignKey(Users, on_delete=models.SET_DEFAULT, related_name='files', default=1)
 
     def __str__(self):
         return self.title    
