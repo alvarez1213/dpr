@@ -23,6 +23,8 @@ class Files(models.Model):
     title = models.CharField(max_length=200)
     path_to_file = models.CharField(max_length=500)
     user = models.ForeignKey(Users, on_delete=models.SET_DEFAULT, related_name='files', default=1)
+    comment = models.CharField(max_length=500, default='')
+    size = models.IntegerField(default=0)
 
     def __str__(self):
         return self.title    
