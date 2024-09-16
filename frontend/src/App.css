@@ -1,0 +1,35 @@
+/*** Navbar ***/
+.navbar-nav > a {
+    color: rgba(0, 0, 0, 0.65);
+    padding: 0.5rem 0.6rem;
+}
+
+.navbar-brand {
+    padding-left: 0;
+}
+
+.container {
+    padding: 0;
+    margin: 0 12% 0 150px;
+}
+
+@media (min-width: 1400px) {
+    .container {
+        max-width: 100%;
+    }
+}
+
+/*** Home Page ***/
+.home {
+    margin-top: 15%;
+    margin-left: 150px;
+}
+
+.home__title {
+    margin-bottom: 10px;
+}
+
+.home__info {
+    font-size: 17px;
+    margin-bottom: 25px;
+}
