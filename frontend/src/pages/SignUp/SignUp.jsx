@@ -49,7 +49,7 @@ export const SignUp = () => {
         })
         .catch(err => {
           const data = err.response.data
-
+          console.log(data)
           setMessage(data.message)
           if (data.input_name === 'username') {
             form[2].value = ''

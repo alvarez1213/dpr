@@ -26,7 +26,7 @@ export const Storage = () => {
 
   useEffect(() => {
     getFiles()
-  }, [files])
+  }, [])
 
   if (!user) {
     return (
