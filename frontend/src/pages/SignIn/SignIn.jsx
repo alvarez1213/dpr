@@ -11,10 +11,47 @@ export const SignIn = () => {
   const [message, setMessage] = useState('')
   const [validated, setValidated] = useState(false);
 
+  const navigate = useNavigate()
+
   const handleSubmit = (e) => {
     e.preventDefault();
+    const form = e.currentTarget
+
+    let isValid = true
+    if (form.checkValidity() === false) {
+      isValid = false
+    }
+
     setValidated(true);
-  }  
+
+    if (isValid) {
+      const username = form[0].value
+      const password = form[1].value
+
+      const data = {
+        username: username,
+        password: password,
+        create: false
+      }
+      axios
+        .post(API_URL_USERS, data, {
+          'Content-Type': 'application/json'
+        })
+        .then(res => {
+          if (res.status === 200) {
+            const user = res.data
+            navigate('/storage', { state: user })
+          }
+        })
+        .catch(err => {
+          const data = err.response.data
+
+          setMessage(data.message)
+          form[0].value = ''
+          form[1].value = ''
+        })
+    }
+  }
 
   return (
     <div className="sign-in">
@@ -23,6 +60,7 @@ export const SignIn = () => {
         <Form.Group className="mb-3" as={Col} md="3" controlId='formSignInUsername'>
           <Form.Label>Ваш логин</Form.Label>
           <Form.Control
+            type='text'
             placeholder='Введите логин'
             required
           />
@@ -33,6 +71,7 @@ export const SignIn = () => {
         <Form.Group className="mb-3" as={Col} md="3" controlId='formSignInPassword'>
           <Form.Label>Пароль</Form.Label>
           <Form.Control
+            type='password'
             placeholder='Введите пароль'
             required
           />

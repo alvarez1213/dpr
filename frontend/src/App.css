@@ -33,3 +33,67 @@
     font-size: 17px;
     margin-bottom: 25px;
 }
+
+/*** Form ***/
+.form-text {
+    color: red;
+}
+
+/*** Sign In ***/
+.sign-in {
+    margin-top: 9%;
+    margin-left: 150px;
+}
+
+.sign-in__title {
+    font-size: 32px;
+    margin-bottom: 30px;
+}
+
+/*** Sign Up ***/
+.sign-up {
+    margin-top: 9%;
+    margin-left: 150px;
+}
+
+.sign-up__title {
+    font-size: 32px;
+    margin-bottom: 35px;
+}
+
+/*** Storage ***/
+.storage {
+    margin-top: 9%;
+    margin-right: 8%;
+    margin-left: 150px;
+}
+
+.storage__title {
+    font-size: 32px;
+    margin-bottom: 30px;
+}
+
+.badge {
+    cursor: pointer;
+    font-size: 16px;
+    height: 30.5px;
+    width: 33.6px;
+}
+
+.storage-comment {
+    max-width: 550px;
+}
+
+.table {
+    caret-color: transparent;
+}
+
+.modal-footer {
+    justify-content: flex-start;
+}
+
+/*** Page Not Found, No Permission ***/
+.error-message {
+    text-align: center;
+    margin-top: 40vh;
+}

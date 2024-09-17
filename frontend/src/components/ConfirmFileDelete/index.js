@@ -1,0 +1,1 @@
+export { ConfirmFileDelete } from './ConfirmFileDelete'

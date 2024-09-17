@@ -3,6 +3,9 @@ import { useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import Badge from 'react-bootstrap/Badge'
 
+import { ConfirmFileDelete } from '../ConfirmFileDelete';
+import { UpdateFile } from '../UpdateFile';
+
 export const StorageItem = ({ file }) => {
   const [showUpdate, setShowUpdate] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
@@ -29,6 +32,8 @@ export const StorageItem = ({ file }) => {
           <FontAwesomeIcon icon="fa-solid fa-xmark" />
         </Badge>
       </td>
+      <UpdateFile file={file} handleClose={toggleUpdate} show={showUpdate} />
+      <ConfirmFileDelete id={file.id} handleClose={toggleDelete} show={showDelete} />
     </tr>
   )
 }

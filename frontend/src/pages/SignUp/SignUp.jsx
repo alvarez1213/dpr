@@ -11,11 +11,56 @@ export const SignUp = () => {
   const [message, setMessage] = useState('')
   const [validated, setValidated] = useState(false);
 
+  const navigate = useNavigate()
+
   const handleSubmit = (e) => {
-    e.preventDefault();
-    const navigate = useNavigate()
+    e.preventDefault()
+    const form = e.currentTarget
+
+    let isValid = true
+    if (form.checkValidity() === false) {
+      isValid = false
+    }
+
+    setValidated(true);
+
+    if (isValid) {
+      const full_name = `${form[0].value} ${form[1].value}`
+      const username = form[2].value
+      const email = form[3].value
+      const password = form[4].value
+
+      const data = {
+        full_name: full_name,
+        username: username,
+        email: email,
+        password: password,
+        create: true
+      }
+      axios
+        .post(API_URL_USERS, data, {
+          'Content-Type': 'application/json'
+        })
+        .then(res => {
+          if (res.status === 201) {
+            const user = res.data
+            navigate('/storage', { state: user })
+          }
+        })
+        .catch(err => {
+          const data = err.response.data
+
+          setMessage(data.message)
+          if (data.input_name === 'username') {
+            form[2].value = ''
+          }
+          if (data.input_name === 'password') {
+            form[4].value = ''
+          }
+        })
+    }
   }
-  
+
   return (
     <div className="sign-up">
       <h1 className="sign-up__title">Регистрация</h1>
@@ -56,6 +101,7 @@ export const SignUp = () => {
         <Form.Group className="mb-3" as={Col} md="3" controlId='formSignUpEmail'>
           <Form.Label>Ваш email</Form.Label>
           <Form.Control
+            type='email'
             placeholder='Введите email'
             required
           />
@@ -66,6 +112,7 @@ export const SignUp = () => {
         <Form.Group as={Col} md="3" controlId='formSignUpPassword'>
           <Form.Label>Придумайте пароль</Form.Label>
           <Form.Control
+            type='password'
             placeholder='Введите пароль'
             required
           />

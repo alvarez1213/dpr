@@ -9,16 +9,56 @@ import Table from 'react-bootstrap/Table';
 import Col from "react-bootstrap/Col"
 
 import { StorageItem } from '../../components/StorageItem'
+import { NoPermission } from '../../components/NoPermission';
 
 export const Storage = () => {
   const [files, setFiles] = useState([])
   const location = useLocation()
   const user = location.state
 
+  const getFiles = () => {
+    axios
+      .get(API_URL_STORAGE + '?format=json')
+      .then(res => {
+        setFiles(res.data)
+      })
+  }
+
+  useEffect(() => {
+    getFiles()
+  }, [files])
+
+  if (!user) {
+    return (
+      <NoPermission />
+    )
+  }
+
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    const form = e.currentTarget
+    const image = form[0].files[0]
+    const comment = form[1].value
+
+    console.log(user)
+    console.log(user.id)
+    let formData = new FormData();
+    formData.append("image", image, image.name);
+    formData.append("title", image.name);
+    formData.append("size", image.size);
+    formData.append("comment", comment);
+    formData.append("user", user.id);
+
+    axios
+      .post(API_URL_STORAGE, formData, {
+        headers: {
+          "content-type": "multipart/form-data",
+        },
+      })
+      .catch((err) => console.log(err));
   }
-    
+
   return (
     <div className="storage">
       <h1 className="storage__title">Ваше Хранилище</h1>
