@@ -1,0 +1,14 @@
+GET http://127.0.0.1:8000/users/ HTTP/1.1
+content-type: application/json
+###
+
+POST http://127.0.0.1:8000/users/ HTTP/1.1
+content-type: application/json
+
+{    
+    "full_name": "full_name",
+    "username": "username",
+    "email": "email@qq.com",
+    "password": "password1!",
+    "create": true
+}

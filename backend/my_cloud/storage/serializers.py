@@ -5,10 +5,16 @@ from rest_framework import serializers
 class UsersSerializer(serializers.ModelSerializer):
     class Meta:
         model = Users
-        fields = ['id', 'username', 'full_name', 'email', 'password', 'role', 'path_to_user']
+        fields = '__all__'
 
 
 class FilesSerializer(serializers.ModelSerializer):
     class Meta:
         model = Files
-        fields = ['id', 'title', 'path_to_file', 'user']
+        fields = '__all__'
+
+
+class ErrorSerializer(serializers.Serializer):
+    message = serializers.CharField(max_length=200)
+    input_name = serializers.CharField(max_length=50)
+
