@@ -1,7 +1,9 @@
-import { useState } from 'react'
+import { useState, useContext } from 'react'
 import { useNavigate } from "react-router-dom";
 import { API_URL_USERS } from '../../constants'
 import axios from "axios";
+
+import { UserContext } from '../../components/UserContext';
 
 import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
@@ -10,6 +12,7 @@ import Col from "react-bootstrap/Col"
 export const SignUp = () => {
   const [message, setMessage] = useState('')
   const [validated, setValidated] = useState(false);
+  const { setUser } = useContext(UserContext);
 
   const navigate = useNavigate()
 
@@ -44,12 +47,14 @@ export const SignUp = () => {
         .then(res => {
           if (res.status === 201) {
             const user = res.data
-            navigate('/storage', { state: user })
+            setUser(user)
+
+            navigate('/storage')
           }
         })
         .catch(err => {
           const data = err.response.data
-          console.log(data)
+
           setMessage(data.message)
           if (data.input_name === 'username') {
             form[2].value = ''

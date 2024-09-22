@@ -1,5 +1,4 @@
-import { useState, useEffect } from 'react'
-import { useLocation } from 'react-router-dom'
+import { useState, useEffect, useContext } from 'react'
 import { API_URL_STORAGE } from '../../constants'
 import axios from "axios";
 
@@ -8,24 +7,28 @@ import Button from 'react-bootstrap/Button';
 import Table from 'react-bootstrap/Table';
 import Col from "react-bootstrap/Col"
 
+import { UserContext } from '../../components/UserContext';
+
 import { StorageItem } from '../../components/StorageItem'
 import { NoPermission } from '../../components/NoPermission';
 
 export const Storage = () => {
   const [files, setFiles] = useState([])
-  const location = useLocation()
-  const user = location.state
+  const { user } = useContext(UserContext);
 
   const getFiles = () => {
+    if (!user) {
+      return
+    }
     axios
-      .get(API_URL_STORAGE + '?format=json')
-      .then(res => {
+      .get(API_URL_STORAGE + `?pk=${user.id}`)
+      .then((res) => {
         setFiles(res.data)
       })
   }
-
   useEffect(() => {
     getFiles()
+    // eslint-disable-next-line
   }, [])
 
   if (!user) {
@@ -41,20 +44,20 @@ export const Storage = () => {
     const image = form[0].files[0]
     const comment = form[1].value
 
-    console.log(user)
-    console.log(user.id)
     let formData = new FormData();
     formData.append("image", image, image.name);
     formData.append("title", image.name);
     formData.append("size", image.size);
     formData.append("comment", comment);
     formData.append("user", user.id);
-
     axios
       .post(API_URL_STORAGE, formData, {
         headers: {
           "content-type": "multipart/form-data",
         },
+      })
+      .then(() => {
+        getFiles()
       })
       .catch((err) => console.log(err));
   }
@@ -95,7 +98,7 @@ export const Storage = () => {
           </thead>
           <tbody>
             {files.map(file => (
-              <StorageItem key={file.id} file={file} />
+              <StorageItem key={file.id} file={file} getFiles={getFiles} />
             ))}
           </tbody>
         </Table>

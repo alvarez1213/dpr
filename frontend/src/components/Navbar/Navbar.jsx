@@ -1,26 +1,38 @@
+import { useContext } from 'react';
+import { UserContext } from '../UserContext';
+
 import Container from 'react-bootstrap/Container';
 import Nav from 'react-bootstrap/Nav';
 import { Navbar as ReactNavbar } from 'react-bootstrap';
-
-import { NavItem } from '../NavItem'
+import { Link as RouterNavLink } from 'react-router-dom'
 
 export const Navbar = () => {
-  const navbarItems = [
-    { id: 1, name: 'Вход', link: '/signin' },
-    { id: 2, name: 'Регистрация', link: '/signup' },
-    { id: 3, name: 'Хранилище', link: '/storage' },
-  ]
+  const { user } = useContext(UserContext);
 
   return (
     <ReactNavbar fixed="top" expand="lg" className="bg-body-tertiary">
       <Container>
         <ReactNavbar.Brand href="/">My Cloud</ReactNavbar.Brand>
-        <Nav className="md-right">
-          {navbarItems.map((item) => (
-            <NavItem key={item.id} name={item.name} link={item.link} />
-          ))}
-        </Nav>
-      </Container>
-    </ReactNavbar>
+        {user !== null ? (
+          <Nav className="md-right">
+            <RouterNavLink to='/storage'>
+              Хранилище
+            </RouterNavLink>
+            <RouterNavLink to='/storage'>
+              Выйти
+            </RouterNavLink>
+          </Nav>
+        ) : (
+          <Nav className="md-right">
+            <RouterNavLink to='/signin'>
+              Вход
+            </RouterNavLink>
+            <RouterNavLink to='/signup'>
+              Регистрация
+            </RouterNavLink>
+          </Nav>
+        )}
+      </Container >
+    </ReactNavbar >
   )
 }

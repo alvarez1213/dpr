@@ -16,13 +16,14 @@ export const UpdateFile = ({ file, handleClose, show }) => {
 
     file.title = newTitle
     file.comment = newComment
+    delete file.image
     axios
-        .put(API_URL_STORAGE + file.id, JSON.stringify(file), {
-          'Content-Type': 'application/json'
-        })
-        .then(() => {
-          handleClose()
-        })
+      .put(API_URL_STORAGE + file.id, file, {
+        'Content-Type': 'application/json'
+      })
+      .then(() => {
+        handleClose()
+      })
   }
 
   return (
