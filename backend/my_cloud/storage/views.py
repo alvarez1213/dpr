@@ -1,4 +1,6 @@
-from django.http import Http404
+from django.http import Http404, HttpResponseForbidden
+from django.conf import settings
+from django.utils.encoding import force_str
 from django.contrib.auth.hashers import make_password
 from passlib.handlers.django import django_pbkdf2_sha256
 
@@ -8,6 +10,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 import re
+from uuid import uuid4
+from pathlib import Path
 
 from storage.models import Users, Files
 from storage.serializers import FilesSerializer, UsersSerializer, ErrorSerializer
@@ -21,8 +25,8 @@ class UsersList(APIView):
     """
     def get(self, request, format=None):
         users = Users.objects.all()
-        serializer = UsersSerializer(users, many=True)
-        return Response(serializer.data)
+        user_serializer = UsersSerializer(users, many=True)
+        return Response(user_serializer.data)
 
     def post(self, request, format=None):
         data = {
@@ -128,16 +132,16 @@ class UserDetail(APIView):
 
     def get(self, request, pk, format=None):
         user = self.get_object(pk)
-        serializer = UsersSerializer(user)
-        return Response(serializer.data)
+        user_serializer = UsersSerializer(user)
+        return Response(user_serializer.data)
 
     def put(self, request, pk, format=None):
         user = self.get_object(pk)
-        serializer = UsersSerializer(user, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        user_serializer = UsersSerializer(user, data=request.data)
+        if user_serializer.is_valid():
+            user_serializer.save()
+            return Response(user_serializer.data)
+        return Response(user_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, pk, format=None):
         user = self.get_object(pk)
@@ -154,16 +158,23 @@ class FilesList(APIView):
     parser_classes = (MultiPartParser, FormParser)
 
     def get(self, request, format=None):
-        files = Files.objects.all()
-        serializer = FilesSerializer(files, many=True)
-        return Response(serializer.data)
+        user_id = request.GET.get('pk', None)
+        if user_id == None:
+            files = Files.objects.all()
+            file_serializer = FilesSerializer(files, many=True)
+            return Response(file_serializer.data)
+
+        files = Files.objects.filter(user=user_id)
+        file_serializer = FilesSerializer(files, many=True)
+        return Response(file_serializer.data)
+
 
     def post(self, request, format=None):
-        serializer = FilesSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        file_serializer = FilesSerializer(data=request.data)
+        if file_serializer.is_valid():
+            file_serializer.save()
+            return Response(file_serializer.data, status=status.HTTP_201_CREATED)
+        return Response(file_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class FileDetail(APIView):
@@ -177,19 +188,39 @@ class FileDetail(APIView):
             raise Http404
 
     def get(self, request, pk, format=None):
-        file = self.get_object(pk)
-        serializer = FilesSerializer(file)
-        return Response(serializer.data)
+        download = request.GET.get('download', None)
+        if download == None:
+            file = self.get_object(pk)
+            files_serializer = FilesSerializer(file)
+            return Response(files_serializer.data)
+
+        url = serve_private_file(pk=pk)
+        return Response(url)
+
 
     def put(self, request, pk, format=None):
         file = self.get_object(pk)
-        serializer = FilesSerializer(file, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        files_serializer = FilesSerializer(file, data=request.data)
+        if files_serializer.is_valid():
+            files_serializer.save()
+            return Response(files_serializer.data)
+        return Response(files_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, pk, format=None):
         file = self.get_object(pk)
         file.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+def serve_private_file(pk):
+    obj = Files.objects.get(id=pk)
+
+    temporary_filename = f'temp_{obj.pk}_{uuid4().hex[:8]}.{obj.image.name.split(".")[-1]}'
+    temporary_path = Path(settings.MEDIA_ROOT).joinpath(temporary_filename)
+
+    with open(temporary_path, 'wb+') as temp_file:
+        for chunk in obj.image.open():
+            temp_file.write(chunk)
+    return {
+        'url': force_str(temporary_path)    
+    }
