@@ -16,6 +16,7 @@ from pathlib import Path
 from storage.models import Users, Files
 from storage.serializers import FilesSerializer, UsersSerializer, ErrorSerializer
 
+import os
 
 ### Users ###
 
@@ -43,6 +44,7 @@ class UsersList(APIView):
                 user = Users.objects.get(username=username)
             except Users.DoesNotExist:
                 unique_user = True
+            
             if not unique_user:
                 data['message'] = 'Пользователь с таким логином уже существует.'
                 data['input_name'] = 'username'
@@ -92,6 +94,7 @@ class UsersList(APIView):
                 user_serializer.save()
                 return Response(user_serializer.data, status=status.HTTP_201_CREATED)
             return Response(user_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
         else:
             # Try to find user by username
             try:
@@ -140,7 +143,7 @@ class UserDetail(APIView):
         user_serializer = UsersSerializer(user, data=request.data)
         if user_serializer.is_valid():
             user_serializer.save()
-            return Response(user_serializer.data)
+            return Response(user_serializer.data)        
         return Response(user_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, pk, format=None):
@@ -212,15 +215,15 @@ class FileDetail(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-def serve_private_file(pk):
+def serve_private_file(request, pk):
     obj = Files.objects.get(id=pk)
 
     temporary_filename = f'temp_{obj.pk}_{uuid4().hex[:8]}.{obj.image.name.split(".")[-1]}'
-    temporary_path = Path(settings.MEDIA_ROOT).joinpath(temporary_filename)
+    temporary_path = os.path.join(settings.MEDIA_ROOT, temporary_filename)
 
     with open(temporary_path, 'wb+') as temp_file:
         for chunk in obj.image.open():
             temp_file.write(chunk)
     return {
-        'url': force_str(temporary_path)    
+        'url': 'http://' + request.get_host() + settings.MEDIA_URL + temporary_filename
     }
