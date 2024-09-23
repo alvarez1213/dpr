@@ -197,7 +197,7 @@ class FileDetail(APIView):
             files_serializer = FilesSerializer(file)
             return Response(files_serializer.data)
 
-        url = serve_private_file(pk=pk)
+        url = serve_private_file(request, pk=pk)
         return Response(url)
 
 
