@@ -22,7 +22,7 @@ function App() {
             <Route path='/signup' Component={SignUp} />
             <Route path='/signin' Component={SignIn} />
             <Route path='/storage' Component={Storage} />
-            <Route path='*' Component={PageNotFound} />
+            {/* <Route path='*' Component={PageNotFound} /> */}
           </Routes>
         </div>
 
