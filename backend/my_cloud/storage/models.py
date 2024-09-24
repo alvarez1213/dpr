@@ -30,7 +30,7 @@ class Files(models.Model):
     user = models.ForeignKey(Users, on_delete=models.SET_DEFAULT, related_name='files', default=1)
     comment = models.CharField(max_length=500, default='')
     size = models.IntegerField(default=0)
-    image = models.FileField(upload_to='user_path', default='')
+    image = models.FileField(upload_to=user_path, default='')
 
     def __str__(self):
         return self.title    
