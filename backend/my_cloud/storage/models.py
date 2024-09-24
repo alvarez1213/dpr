@@ -1,6 +1,7 @@
 from django.db import models
 from uuid import uuid4
 import os
+import datetime
 
 
 class Users(models.Model):
@@ -9,7 +10,7 @@ class Users(models.Model):
     full_name = models.CharField(max_length=200)
     email = models.EmailField()
     password = models.CharField(max_length=100)
-    role = models.CharField(max_length=100, null=True)
+    role = models.CharField(max_length=100, default='USER')
 
     def __str__(self):
         return self.username    
@@ -31,6 +32,7 @@ class Files(models.Model):
     comment = models.CharField(max_length=500, default='')
     size = models.IntegerField(default=0)
     image = models.FileField(upload_to=user_path, default='')
+    last_download = models.DateTimeField(null=True)
 
     def __str__(self):
         return self.title    
