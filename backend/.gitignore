@@ -16,6 +16,9 @@ media
 # C extensions
 *.so
 
+# exclude .env
+.env
+
 # Distribution / packaging
 .Python
 build/
