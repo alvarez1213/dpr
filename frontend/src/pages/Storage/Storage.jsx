@@ -57,6 +57,8 @@ export const Storage = () => {
         },
       })
       .then(() => {
+        form[0].value = null
+        form[1].value = ''
         getFiles()
       })
       .catch((err) => console.log(err));
@@ -93,7 +95,7 @@ export const Storage = () => {
               <th>Дата загрузки</th>
               <th>Дата последнего скачивания</th>
               <th>Комментарий</th>
-              <th></th>
+              <th>Действия</th>
             </tr>
           </thead>
           <tbody>

@@ -9,10 +9,11 @@ import { UserContext } from '../../components/UserContext';
 export const ConfirmLogout = ({ show, handleClose }) => {
   const { setUser } = useContext(UserContext);
   const navigate = useNavigate()
-  
+
   const handleLogout = () => {
     handleClose()
     setUser(null)
+    window.localStorage.setItem('user', false)
 
     navigate('/')
   }
