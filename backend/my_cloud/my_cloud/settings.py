@@ -12,7 +12,7 @@ try:
     load_dotenv(find_dotenv())    
     SECRET_KEY = os.environ["SECRET_KEY"]
 except KeyError as e:
-    raise RuntimeError("Could not find a SECRET_KEY in environment") from e   
+    raise RuntimeError("Could not find a SECRET_KEY in environment") from e
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -84,11 +84,11 @@ WSGI_APPLICATION = 'my_cloud.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'my_cloud',
-        'USER': 'my_cloud_user',
-        'PASSWORD': 'cloud123',
-        'HOST': 'localhost',
-        'PORT': '5432'
+        'NAME': os.environ["DB_NAME"],
+        'USER': os.environ["DB_USER"],
+        'PASSWORD': os.environ["DB_PASS"],
+        'HOST': os.environ["DB_HOST"],
+        'PORT': os.environ["DB_PORT"],
     }
 }
 
