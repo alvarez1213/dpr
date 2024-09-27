@@ -16,6 +16,8 @@ export const Storage = () => {
   const [files, setFiles] = useState([])
   const { user } = useContext(UserContext);
 
+  const [message, setMessage] = useState('')
+
   const getFiles = () => {
     if (!user) {
       return
@@ -44,8 +46,16 @@ export const Storage = () => {
     const image = form[0].files[0]
     const comment = form[1].value
 
+    if (!image) {
+      setMessage('Пожалуйста выберите файл.')
+      return
+    } else if (image.size === 0) {
+      form[0].value = null
+      setMessage('Нельзя загрузить пустой файл.')
+      return
+    }
     let formData = new FormData();
-    formData.append("image", image, image.name);
+    formData.append("file", image, image.name);
     formData.append("title", image.name);
     formData.append("size", image.size);
     formData.append("comment", comment);
@@ -59,6 +69,7 @@ export const Storage = () => {
       .then(() => {
         form[0].value = null
         form[1].value = ''
+        setMessage('')
         getFiles()
       })
       .catch((err) => console.log(err));
@@ -81,6 +92,13 @@ export const Storage = () => {
             rows={3}
           />
         </Form.Group>
+
+        {message ? (
+          <Form.Text className='d-block mt-3'>{message}</Form.Text>
+        ) : (
+          <Form.Text>{message}</Form.Text>
+        )}
+
         <Button type='submit' className='mt-3 mb-4'>Добавить</Button>
       </Form>
 

@@ -41,7 +41,7 @@ export const Navbar = () => {
         )}
       </Container >
 
-      <ConfirmLogout show={showLogout} handleClose={setShowLogout} />
+      <ConfirmLogout show={showLogout} handleClose={toggleLogout} />
     </ReactNavbar >
   )
 }

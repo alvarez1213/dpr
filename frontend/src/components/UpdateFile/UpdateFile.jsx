@@ -16,7 +16,7 @@ export const UpdateFile = ({ file, handleClose, show }) => {
 
     file.title = newTitle
     file.comment = newComment
-    delete file.image
+    delete file.file
     axios
       .put(API_URL_STORAGE + file.id, file, {
         'Content-Type': 'application/json'
