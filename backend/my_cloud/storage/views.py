@@ -14,7 +14,7 @@ import os
 from uuid import uuid4
 
 from storage.models import Users, Files
-from storage.serializers import FilesSerializer, UsersSerializer, ErrorSerializer
+from storage.serializers import FilesSerializer, UsersSerializer
 
 
 ### Users ###
@@ -46,34 +46,30 @@ class UsersList(APIView):
             if not unique_user:
                 data['message'] = 'Пользователь с таким логином уже существует.'
                 data['input_name'] = 'username'
-                error_serializer = ErrorSerializer(data)
-                return Response(error_serializer.data, status=status.HTTP_400_BAD_REQUEST)
+                return Response(data, status=status.HTTP_400_BAD_REQUEST)
             
             match_symbols = re.search(r'[\'\"\`@_!#$%^&*()<>?/\|}{~:]+', username)
             if match_symbols:
                 data['message'] = 'Логин должен состоять только из букв и цифр.'
                 data['input_name'] = 'username'
-                error_serializer = ErrorSerializer(data)
-                return Response(error_serializer.data, status=status.HTTP_400_BAD_REQUEST)
+                return Response(data, status=status.HTTP_400_BAD_REQUEST)
             
             if not username[0].isalpha():
                 data['message'] = 'Первым символом логина должна быть буква.'
                 data['input_name'] = 'username'
-                error_serializer = ErrorSerializer(data)
-                return Response(error_serializer.data, status=status.HTTP_400_BAD_REQUEST)
+                return Response(data, status=status.HTTP_400_BAD_REQUEST)
 
             if len(username) < 4 or len(username) > 20:
                 data['message'] = 'Длина логина должна быть не меньше 4 и не больше 20.'
                 data['input_name'] = 'username'
-                return Response(error_serializer.data, status=status.HTTP_400_BAD_REQUEST)
+                return Response(data, status=status.HTTP_400_BAD_REQUEST)
 
             password = request.data['password']
             # Validate password
             if len(password) < 6:
                 data['message'] = 'Длина пароля должна быть не меньше 6.'
                 data['input_name'] = 'password'
-                error_serializer = ErrorSerializer(data)
-                return Response(error_serializer.data, status=status.HTTP_400_BAD_REQUEST)
+                return Response(data, status=status.HTTP_400_BAD_REQUEST)
 
             match_letters = re.search(r'[a-zA-Z]+', password)
             match_numbers = re.search(r'[0-9]+', password)
@@ -81,8 +77,7 @@ class UsersList(APIView):
             if not match_letters or not match_numbers or not match_symbols:
                 data['message'] = 'В пароле должна быть хотя бы одна буква, одна цифра и один специальный символ.'
                 data['input_name'] = 'password'
-                error_serializer = ErrorSerializer(data)
-                return Response(error_serializer.data, status=status.HTTP_400_BAD_REQUEST)
+                return Response(data, status=status.HTTP_400_BAD_REQUEST)
 
             # Hashing password
             request.data['password'] = make_password(request.data['password'])
@@ -98,15 +93,13 @@ class UsersList(APIView):
                 user = Users.objects.get(username=request.data['username'])
             except Users.DoesNotExist:
                 data['message'] = 'Неправильное имя пользователя или пароль.'
-                error_serializer = ErrorSerializer(data)
-                return Response(error_serializer.data, status=status.HTTP_404_NOT_FOUND)
+                return Response(data, status=status.HTTP_404_NOT_FOUND)
 
             # Match passwords
             verify = django_pbkdf2_sha256.verify(request.data['password'], user.password)
             if not verify:
                 data['message'] = 'Неправильное имя пользователя или пароль.'
-                error_serializer = ErrorSerializer(data)
-                return Response(error_serializer.data, status=status.HTTP_400_BAD_REQUEST)
+                return Response(data, status=status.HTTP_400_BAD_REQUEST)
 
             data = {
                 'id': user.pk,
@@ -170,6 +163,9 @@ class FilesList(APIView):
 
 
     def post(self, request, format=None):
+        if int(request.data['size']) >= 104_857_600:
+            return Response({ 'message': 'Too long'}, status=status.HTTP_400_BAD_REQUEST)
+
         file_serializer = FilesSerializer(data=request.data)
         if file_serializer.is_valid():
             file_serializer.save()
@@ -188,16 +184,22 @@ class FileDetail(APIView):
             raise Http404
 
     def get(self, request, pk, format=None):
-        download = request.GET.get('download', None)
-        if download == None:
-            file = self.get_object(pk)
-            file.last_download = datetime.date.today()
-            files_serializer = FilesSerializer(file)
-            return Response(files_serializer.data)
+        is_download = request.GET.get('download', None)
+        is_special = request.GET.get('special', None)
 
-        url = serve_private_file(request, pk=pk)
-        return Response(url)
+        file = self.get_object(pk)
+        if is_download:
+            file.last_download = datetime.datetime.now()
+            file.save()
+            url = serve_download_file(request, pk)
+            return Response(url)
 
+        if is_special:
+            url = serve_special_file(request, pk)
+            return Response(url)
+
+        files_serializer = FilesSerializer(file)
+        return Response(files_serializer.data)
 
     def put(self, request, pk, format=None):
         file = self.get_object(pk)
@@ -213,20 +215,27 @@ class FileDetail(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-def serve_private_file(request, pk):
+def serve_special_file(request, pk):
     file = Files.objects.get(id=pk)
 
-    temporary_filename = f'temp_{file.pk}_{uuid4().hex[:8]}.{file.image.name.split(".")[-1]}'
+    temporary_filename = f'temp_{file.pk}_{uuid4().hex[:8]}.{file.file.name.split(".")[-1]}'
     temporary_path = os.path.join(settings.MEDIA_ROOT, temporary_filename)
 
     with open(temporary_path, 'wb+') as temp_file:
-        for chunk in file.image.open():
+        for chunk in file.file.open():
             temp_file.write(chunk)
 
-    temp_url = 'http://' + request.get_host() + settings.MEDIA_URL + temporary_filename
-    special_url = 'http://' + request.get_host() + settings.MEDIA_URL + file.image.name
+    special_url = 'http://' + request.get_host() + settings.MEDIA_URL + temporary_filename
     return {
-        'temp_url': temp_url,
-        'filename': file.title,
         'special_url': special_url
+    }
+
+
+def serve_download_file(request, pk):
+    file = Files.objects.get(id=pk)
+    
+    download_url = 'http://' + request.get_host() + settings.MEDIA_URL + file.file.name
+    return {
+        'download_url': download_url,
+        'filename': file.title
     }
