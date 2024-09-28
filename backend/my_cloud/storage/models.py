@@ -31,7 +31,7 @@ class Files(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     title = models.CharField(max_length=200)
     user = models.ForeignKey(Users, on_delete=models.SET_DEFAULT, related_name='files', default=1)
-    comment = models.CharField(max_length=500, default='')
+    comment = models.CharField(max_length=500, default='', blank=True)
     size = models.IntegerField(default=0)
     file = models.FileField(upload_to=user_path, default='')
     last_download = models.DateTimeField(null=True)
